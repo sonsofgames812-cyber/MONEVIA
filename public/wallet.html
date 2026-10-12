@@ -1,3 +1,123 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#08111f"><link rel="stylesheet" href="/style.css"><title>Wallet | MONEVIA</title></head><body><header class="topbar"><a class="page-brand" href="/"><img src="/assets/logo.png" alt=""><span>MONEVIA</span></a><nav><a href="/">Home</a><a href="/tasks.html">Tasks</a><a href="/marketplace.html">Marketplace</a><a href="/dashboard.html">Dashboard</a></nav></header><main class="page-wrap">
-<section class="page-hero"><span class="eyebrow">YOUR WALLET</span><h1>Balances and payout requests.</h1><p>Balances are calculated from recorded marketplace activity. A payout request is a review request, not a money transfer.</p></section><section class="page-panel"><h2>Available recorded balances</h2><div id="balances" class="page-card-grid"><p class="page-muted">Loading…</p></div></section><section class="page-panel"><h2>Request a payout review</h2><form class="page-form" id="payoutForm"><label>Amount<input name="amount" type="number" min="10" step="0.01" required placeholder="10.00"></label><label>Currency<select name="currency"><option value="usd">USD</option><option value="eur">EUR</option><option value="gbp">GBP</option><option value="ngn">NGN</option></select></label><button class="btn btn-primary">Submit request</button><p class="page-muted">Minimum request: 10 currency units. Requests require manual review and a separately supported payout method.</p><p id="message" class="page-error"></p></form></section><section class="page-panel"><h2>Recent payout requests</h2><div id="payouts" class="page-table-wrap"></div></section>
-</main><footer class="page-footer">© <span class="year"></span> MONEVIA · Real value, transparent earnings. <script>document.querySelectorAll('.year').forEach(x=>x.textContent=new Date().getFullYear())</script></footer>
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0b0f">
+  <title>MONEVIA | Wallet</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .wallet-container {
+      width: min(92%, 650px);
+      margin: 40px auto;
+    }.wallet-card {
+  background: linear-gradient(135deg, #25253b, #101018);
+  border: 1px solid #39394c;
+  border-radius: 20px;
+  padding: 28px;
+  margin: 24px 0;
+}
+
+.wallet-label {
+  color: #c3c3d1;
+  font-size: 14px;
+}
+
+.wallet-balance {
+  font-size: clamp(30px, 7vw, 42px);
+  font-weight: 800;
+  margin: 14px 0;
+  overflow-wrap: anywhere;
+}
+
+.wallet-note {
+  color: #b8b8c8;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.wallet-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.wallet-button {
+  display: block;
+  padding: 14px;
+  text-align: center;
+  border-radius: 10px;
+  background: #ff7200;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.wallet-button.secondary {
+  background: #292936;
+  border: 1px solid #454554;
+}
+
+.wallet-section {
+  background: #17171f;
+  border: 1px solid #30303a;
+  border-radius: 16px;
+  padding: 22px;
+  margin-top: 20px;
+}
+
+.wallet-section h2 {
+  margin: 0 0 12px;
+  font-size: 19px;
+}
+
+.wallet-section p {
+  color: #c3c3d1;
+  line-height: 1.7;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 15px;
+  color: #ff8b32;
+  text-decoration: none;
+}
+
+  </style>
+</head>
+<body>
+  <main class="wallet-container">
+    <a class="back-link" href="dashboard.html">← Back to Dashboard</a><h1>My Wallet</h1>
+<p>Manage your MONEVIA wallet.</p>
+
+<section class="wallet-card">
+  <p class="wallet-label">Available Balance</p>
+  <div class="wallet-balance" id="walletBalance">₦0.00</div>
+  <p class="wallet-note">
+    This is a demonstration balance. No real money is stored or transferred.
+  </p>
+
+  <div class="wallet-actions">
+    <a class="wallet-button" href="withdraw.html">Withdraw</a>
+    <a class="wallet-button secondary" href="history.html">Transaction History</a>
+  </div>
+</section>
+
+<section class="wallet-section">
+  <h2>Wallet Information</h2>
+  <p id="walletMessage">
+    Your real wallet balance will appear here when a secure wallet backend
+    is connected.
+  </p>
+</section>
+
+  </main>  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const balanceElement = document.getElementById("walletBalance");
+
+      if (balanceElement) {
+        balanceElement.textContent = "₦0.00";
+      }
+    });
+  </script></body>
+</html>
