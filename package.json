@@ -1,16 +1,25 @@
 {
 "name": "monevia",
 "version": "1.0.0",
-"description": "MONEVIA Rewards and Marketplace Platform",
+"private": true,
+"description": "MONEVIA web application",
 "main": "server.js",
 "scripts": {
 "start": "node server.js"
 },
+"engines": {
+"node": ">=20"
+},
 "dependencies": {
-"express": "^4.21.2",
-"cors": "^2.8.5",
-"dotenv": "^16.4.7",
 "bcryptjs": "^2.4.3",
-"jsonwebtoken": "^9.0.2"
+"connect-pg-simple": "^10.0.0",
+"dotenv": "^16.4.7",
+"express": "^4.21.2",
+"express-rate-limit": "^7.5.0",
+"express-session": "^1.18.1",
+"helmet": "^8.0.0",
+"pg": "^8.13.1",
+"stripe": "^17.5.0",
+"zod": "^3.24.1"
 }
 }
