@@ -1,123 +1,219 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0b0b0f">
-  <title>MONEVIA | Wallet</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="theme-color" content="#101010">
+
+  <title>MONEVIA | My Wallet</title>
+
   <style>
-    .wallet-container {
-      width: min(92%, 650px);
-      margin: 40px auto;
-    }.wallet-card {
-  background: linear-gradient(135deg, #25253b, #101018);
-  border: 1px solid #39394c;
-  border-radius: 20px;
-  padding: 28px;
-  margin: 24px 0;
-}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-.wallet-label {
-  color: #c3c3d1;
-  font-size: 14px;
-}
+    body {
+      font-family: Arial, sans-serif;
+      background: #101010;
+      color: #ffffff;
+      min-height: 100vh;
+    }
 
-.wallet-balance {
-  font-size: clamp(30px, 7vw, 42px);
-  font-weight: 800;
-  margin: 14px 0;
-  overflow-wrap: anywhere;
-}
+    header {
+      padding: 22px 18px;
+      background: #191919;
+      border-bottom: 1px solid #303030;
+    }
 
-.wallet-note {
-  color: #b8b8c8;
-  font-size: 13px;
-  line-height: 1.6;
-}
+    header h1 {
+      color: #ff6b35;
+      font-size: 25px;
+    }
 
-.wallet-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 24px;
-}
+    header p {
+      color: #aaaaaa;
+      font-size: 13px;
+      margin-top: 6px;
+    }
 
-.wallet-button {
-  display: block;
-  padding: 14px;
-  text-align: center;
-  border-radius: 10px;
-  background: #ff7200;
-  color: #fff;
-  text-decoration: none;
-  font-weight: 700;
-}
+    main {
+      max-width: 600px;
+      margin: 35px auto;
+      padding: 0 18px;
+    }
 
-.wallet-button.secondary {
-  background: #292936;
-  border: 1px solid #454554;
-}
+    .back {
+      display: inline-block;
+      color: #ff8b61;
+      text-decoration: none;
+      margin-bottom: 24px;
+    }
 
-.wallet-section {
-  background: #17171f;
-  border: 1px solid #30303a;
-  border-radius: 16px;
-  padding: 22px;
-  margin-top: 20px;
-}
+    .wallet-card {
+      background: linear-gradient(135deg, #ff6b35, #c92f15);
+      border-radius: 22px;
+      padding: 28px 22px;
+      box-shadow: 0 15px 40px rgba(255, 83, 35, 0.15);
+    }
 
-.wallet-section h2 {
-  margin: 0 0 12px;
-  font-size: 19px;
-}
+    .wallet-card p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
 
-.wallet-section p {
-  color: #c3c3d1;
-  line-height: 1.7;
-}
+    .balance {
+      font-size: 35px;
+      font-weight: 700;
+      margin: 18px 0;
+      overflow-wrap: anywhere;
+    }
 
-.back-link {
-  display: inline-block;
-  margin-bottom: 15px;
-  color: #ff8b32;
-  text-decoration: none;
-}
+    .status {
+      margin-top: 20px;
+      font-size: 13px;
+    }
 
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .action {
+      background: #202020;
+      color: #ffffff;
+      text-align: center;
+      padding: 20px 12px;
+      border-radius: 15px;
+      text-decoration: none;
+      border: 1px solid #333333;
+    }
+
+    .action span {
+      display: block;
+      font-size: 25px;
+      margin-bottom: 9px;
+    }
+
+    .notice {
+      color: #aaaaaa;
+      background: #1b1b1b;
+      padding: 18px;
+      border-radius: 14px;
+      margin-top: 24px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    #message {
+      color: #ffb18f;
+      font-size: 13px;
+      margin-top: 14px;
+    }
+
+    footer {
+      color: #777777;
+      text-align: center;
+      padding: 30px 15px;
+      font-size: 12px;
+    }
   </style>
 </head>
+
 <body>
-  <main class="wallet-container">
-    <a class="back-link" href="dashboard.html">← Back to Dashboard</a><h1>My Wallet</h1>
-<p>Manage your MONEVIA wallet.</p>
+  <header>
+    <h1>MONEVIA</h1>
+    <p>Your money dashboard</p>
+  </header>
 
-<section class="wallet-card">
-  <p class="wallet-label">Available Balance</p>
-  <div class="wallet-balance" id="walletBalance">₦0.00</div>
-  <p class="wallet-note">
-    This is a demonstration balance. No real money is stored or transferred.
-  </p>
+  <main>
+    <a class="back" href="dashboard.html">← Back to dashboard</a>
 
-  <div class="wallet-actions">
-    <a class="wallet-button" href="withdraw.html">Withdraw</a>
-    <a class="wallet-button secondary" href="history.html">Transaction History</a>
-  </div>
-</section>
+    <section class="wallet-card">
+      <p>Available wallet balance</p>
+      <div class="balance" id="balance">₦0.00</div>
+      <p>Nigerian Naira (NGN)</p>
+      <div class="status" id="status">Connecting to MONEVIA...</div>
+    </section>
 
-<section class="wallet-section">
-  <h2>Wallet Information</h2>
-  <p id="walletMessage">
-    Your real wallet balance will appear here when a secure wallet backend
-    is connected.
-  </p>
-</section>
+    <div class="actions">
+      <a class="action" href="tasks.html">
+        <span>💼</span>
+        Earn Money
+      </a>
 
-  </main>  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const balanceElement = document.getElementById("walletBalance");
+      <a class="action" href="history.html">
+        <span>📋</span>
+        Transaction History
+      </a>
 
-      if (balanceElement) {
-        balanceElement.textContent = "₦0.00";
+      <a class="action" href="withdraw.html">
+        <span>🏦</span>
+        Withdraw
+      </a>
+
+      <a class="action" href="marketplace.html">
+        <span>🛍️</span>
+        Marketplace
+      </a>
+    </div>
+
+    <p id="message"></p>
+
+    <div class="notice">
+      <strong>Wallet information</strong><br><br>
+      This page currently displays a demonstration balance.
+      Real deposits, earnings, transfers, and withdrawals require
+      a secure backend, a database, verified user accounts, and
+      an integrated payment provider.
+    </div>
+  </main>
+
+  <footer>
+    © <span id="year"></span> MONEVIA. All rights reserved.
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent =
+      new Date().getFullYear();
+
+    async function loadWallet() {
+      const status = document.getElementById("status");
+      const balance = document.getElementById("balance");
+      const message = document.getElementById("message");
+
+      try {
+        const response = await fetch("/api/wallet");
+
+        if (!response.ok) {
+          throw new Error("Wallet service unavailable");
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error("Could not load wallet");
+        }
+
+        balance.textContent = new Intl.NumberFormat("en-NG", {
+          style: "currency",
+          currency: "NGN"
+        }).format(data.balance);
+
+        status.textContent = "Wallet service connected";
+        message.textContent =
+          "Demo mode: no real funds are stored in this wallet.";
+      } catch (error) {
+        status.textContent = "Unable to connect to wallet service";
+        message.textContent =
+          "Please refresh the page or try again later.";
       }
-    });
-  </script></body>
+    }
+
+    loadWallet();
+  </script>
+</body>
 </html>
