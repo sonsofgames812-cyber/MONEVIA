@@ -5,56 +5,76 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// Middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "100kb" }));
 
-// Serve website files from the public folder
+// Serve the website from the public folder.
 app.use(express.static(path.join(__dirname, "public")));
 
-// Homepage
-app.get("/", (req, res) => {
-res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-// Health check for Railway
+// Backend health check.
 app.get("/health", (req, res) => {
-res.status(200).json({
-success: true,
-message: "MONEVIA backend is running!",
-status: "OK"
-});
-});
-
-// API status
-app.get("/api", (req, res) => {
-res.status(200).json({
-name: "MONEVIA",
-message: "Welcome to the MONEVIA API",
-status: "online"
-});
+  res.status(200).json({
+    success: true,
+    message: "MONEVIA backend is running",
+    status: "online"
+  });
 });
 
-// Handle unknown API routes
+// Homepage.
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Wallet page.
+app.get("/wallet", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "wallet.html"));
+});
+
+// Basic wallet API.
+// This is a demonstration only; it does not store real balances.
+app.get("/api/wallet", (req, res) => {
+  res.status(200).json({
+    success: true,
+    currency: "NGN",
+    balance: 0,
+    message: "Wallet API is running. Connect a secure database for real accounts."
+  });
+});
+
+// Basic orders API.
+app.get("/api/orders", (req, res) => {
+  res.status(200).json({
+    success: true,
+    orders: [],
+    message: "No orders are available from this demonstration endpoint."
+  });
+});
+
+// Unknown API routes.
 app.use("/api", (req, res) => {
-res.status(404).json({
-success: false,
-message: "API endpoint not found"
-});
+  res.status(404).json({
+    success: false,
+    message: "API endpoint not found"
+  });
 });
 
-// Handle server errors
+// Handle invalid JSON.
 app.use((err, req, res, next) => {
-console.error("Server error:", err.message);
+  if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid JSON request"
+    });
+  }
 
-res.status(500).json({
-success: false,
-message: "An internal server error occurred"
-});
+  console.error(err);
+
+  res.status(500).json({
+    success: false,
+    message: "Internal server error"
+  });
 });
 
-// Start server
 app.listen(PORT, "0.0.0.0", () => {
-console.log("MONEVIA server running on port ${PORT}");
+  console.log(`MONEVIA backend running on port ${PORT}`);
 });
