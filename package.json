@@ -1,13 +1,13 @@
 {
 "name": "monevia",
 "version": "1.0.0",
-"description": "MONEVIA earning marketplace backend with Supabase authentication",
+"description": "MONEVIA backend",
 "main": "server.js",
 "scripts": {
 "start": "node server.js"
 },
 "engines": {
-"node": ">=20"
+"node": "20.x"
 },
 "dependencies": {
 "@supabase/supabase-js": "^2.57.4",
