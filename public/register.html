@@ -1,4 +1,233 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#08111f"><link rel="stylesheet" href="/style.css"><title>Create account | MONEVIA</title></head><body><header class="topbar"><a class="page-brand" href="/"><img src="/assets/logo.png" alt=""><span>MONEVIA</span></a><nav><a href="/">Home</a><a href="/tasks.html">Tasks</a><a href="/marketplace.html">Marketplace</a><a href="/dashboard.html">Dashboard</a></nav></header><main class="page-wrap">
-<section class="page-hero"><span class="eyebrow">START WITH REAL VALUE</span><h1>Create your MONEVIA account.</h1><p>Join to publish services, explore legitimate opportunities and track verified marketplace activity.</p></section>
-<section class="page-panel"><form class="page-form" id="registerForm"><label>Full name<input name="name" autocomplete="name" required minlength="2" maxlength="80"></label><label>Email address<input name="email" type="email" autocomplete="email" required maxlength="254"></label><label>Password<input name="password" type="password" autocomplete="new-password" required minlength="10" maxlength="100"><small class="page-muted">Use at least 10 characters.</small></label><button class="btn btn-primary" type="submit">Create account</button><p class="page-error" id="message" role="status"></p><p class="page-muted">Already registered? <a href="/login.html">Sign in</a>.</p></form></section>
-</main><footer class="page-footer">© <span class="year"></span> MONEVIA · Real value, transparent earnings. <script>document.querySelectorAll('.year').forEach(x=>x.textContent=new Date().getFullYear())</script></footer>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08111f">
+
+  <title>Create Account | MONEVIA</title>
+
+  <link rel="stylesheet" href="/style.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+  <header class="topbar">
+    <a class="page-brand" href="/">
+      <img src="/assets/logo.png" alt="MONEVIA logo">
+      <span>MONEVIA</span>
+    </a>
+
+    <nav>
+      <a href="/">Home</a>
+      <a href="/marketplace.html">Marketplace</a>
+      <a href="/tasks.html">Tasks</a>
+      <a href="/login.html">Sign in</a>
+    </nav>
+  </header>
+
+  <main class="page-wrap">
+
+    <section class="page-hero">
+      <span class="eyebrow">START WITH REAL VALUE</span>
+
+      <h1>Create your MONEVIA account.</h1>
+
+      <p>
+        Register to explore opportunities, publish services,
+        and manage your marketplace activity.
+      </p>
+    </section>
+
+    <section class="page-panel">
+
+      <form class="page-form" id="registerForm">
+
+        <label for="fullName">
+          Full name
+
+          <input
+            id="fullName"
+            name="name"
+            type="text"
+            autocomplete="name"
+            minlength="2"
+            maxlength="80"
+            required
+          >
+        </label>
+
+        <label for="email">
+          Email address
+
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            maxlength="254"
+            required
+          >
+        </label>
+
+        <label for="password">
+          Password
+
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="new-password"
+            minlength="10"
+            maxlength="100"
+            required
+          >
+
+          <small class="page-muted">
+            Use at least 10 characters.
+          </small>
+        </label>
+
+        <label for="confirmPassword">
+          Confirm password
+
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            autocomplete="new-password"
+            minlength="10"
+            maxlength="100"
+            required
+          >
+        </label>
+
+        <button
+          class="btn btn-primary"
+          id="registerButton"
+          type="submit"
+        >
+          Create account
+        </button>
+
+        <p
+          class="page-error"
+          id="message"
+          role="status"
+          aria-live="polite"
+        ></p>
+
+        <p class="page-muted">
+          Already registered?
+          <a href="/login.html">Sign in</a>.
+        </p>
+
+      </form>
+
+    </section>
+
+  </main>
+
+  <footer class="page-footer">
+    © <span id="year"></span> MONEVIA · Real value, transparent earnings.
+  </footer>
+
+  <script>
+    "use strict";
+
+    const SUPABASE_URL =
+      "https://ndvxxjnqidxiecsfucxc.supabase.co";
+
+    const SUPABASE_PUBLISHABLE_KEY =
+      "sb_publishable_kVUK7nTwgIXQBlQ3rMuiuA_HM-_crjy";
+
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+
+    const form = document.getElementById("registerForm");
+    const message = document.getElementById("message");
+    const button = document.getElementById("registerButton");
+
+    document.getElementById("year").textContent =
+      new Date().getFullYear();
+
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      message.textContent = "";
+
+      const fullName =
+        document.getElementById("fullName").value.trim();
+
+      const email =
+        document.getElementById("email").value.trim();
+
+      const password =
+        document.getElementById("password").value;
+
+      const confirmPassword =
+        document.getElementById("confirmPassword").value;
+
+      if (fullName.length < 2) {
+        message.textContent = "Please enter your full name.";
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        message.textContent = "Your passwords do not match.";
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = "Creating account…";
+
+      try {
+        const { data, error } =
+          await supabaseClient.auth.signUp({
+            email,
+            password,
+
+            options: {
+              data: {
+                full_name: fullName
+              },
+
+              emailRedirectTo:
+                window.location.origin + "/login.html"
+            }
+          });
+
+        if (error) {
+          throw error;
+        }
+
+        if (data.session) {
+          message.textContent =
+            "Your account has been created successfully. Opening your dashboard…";
+
+          window.location.assign("/dashboard.html");
+
+        } else {
+          message.textContent =
+            "Registration received! Check your email for a confirmation link. Confirm your email before signing in.";
+
+          form.reset();
+        }
+
+      } catch (error) {
+        message.textContent =
+          error.message || "Registration failed. Please try again.";
+
+      } finally {
+        button.disabled = false;
+        button.textContent = "Create account";
+      }
+    });
+  </script>
+
+</body>
+</html>
