@@ -22,4 +22,3 @@ For best results, use a simple local static server if your editor provides one. 
 - `public/index.html` — page structure and content
 - `public/style.css` — responsive styling
 - `public/app.js` — demo interactions and local storage
-- 
