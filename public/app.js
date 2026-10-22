@@ -1,86 +1,162 @@
-const $ = s => document.querySelector(s);
-const $$ = s => [...document.querySelectorAll(s)];
-let currentUser = null, authMode = "register", currentCategory = "all";
-const money = (cents, currency) => new Intl.NumberFormat(undefined, { style: "currency", currency: (currency || "usd").toUpperCase(), maximumFractionDigits: 2 }).format(Number(cents) / 100);
-async function api(url, options={}) {
-  const response = await fetch(url, { credentials:"same-origin", ...options, headers:{ ...(options.body ? {"Content-Type":"application/json"} : {}), ...(options.headers||{}) } });
-  const data = await response.json().catch(()=>({}));
-  if (!response.ok) throw new Error(data.error || "Request failed.");
-  return data;
-}
-function toast(message) { const el=$("#toast"); el.textContent=message; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),3000); }
-function openDialog(id) { $(id).showModal(); }
-function closeDialogs() { $$("dialog").forEach(d=>d.close()); }
-$$("[data-close]").forEach(b=>b.addEventListener("click",closeDialogs));
-function setAuthMode(mode) {
-  authMode=mode;
-  $("#authTitle").textContent=mode==="register"?"Create your account":"Welcome back";
-  $("#authSubmit").textContent=mode==="register"?"Create account":"Sign in";
-  $("#nameLabel").hidden=mode!=="register";
-  $("#nameLabel input").required=mode==="register";
-  $("#authForm [name=password]").autocomplete=mode==="register"?"new-password":"current-password";
-  $("#switchText").textContent=mode==="register"?"Already have an account?":"New to MONEVIA?";
-  $("#switchAuth").textContent=mode==="register"?"Sign in":"Create account";
-  $("#authError").textContent="";
-}
-function showAuth(mode="register"){setAuthMode(mode);openDialog("#authDialog");}
-$("#authBtn").addEventListener("click",()=>currentUser?showAccount():showAuth("login"));
-$("#getStarted").addEventListener("click",()=>currentUser?showAccount():showAuth("register"));
-$("#switchAuth").addEventListener("click",()=>setAuthMode(authMode==="register"?"login":"register"));
-$("#authForm").addEventListener("submit",async e=>{
-  e.preventDefault();$("#authError").textContent="";
-  const f=new FormData(e.currentTarget), body={email:f.get("email"),password:f.get("password")};
-  if(authMode==="register")body.name=f.get("name");
-  try{const data=await api(`/api/auth/${authMode}`,{method:"POST",body:JSON.stringify(body)});currentUser=data.user;closeDialogs();renderUser();toast(authMode==="register"?"Account created. Welcome to MONEVIA!":"Welcome back!");}
-  catch(err){$("#authError").textContent=err.message;}
-});
-function renderUser(){const b=$("#authBtn");b.textContent=currentUser?currentUser.name.split(" ")[0]:"Sign in";$("#createListing").textContent=currentUser?"＋ Create listing":"＋ Sign in to list";loadListings();}
-$("#createListing").addEventListener("click",()=>currentUser?openDialog("#listingDialog"):showAuth("register"));
-$("#listingForm").addEventListener("submit",async e=>{
-  e.preventDefault();$("#listingError").textContent="";
-  const f=new FormData(e.currentTarget), price=Math.round(Number(f.get("price"))*100);
-  try{await api("/api/listings",{method:"POST",body:JSON.stringify({title:f.get("title"),description:f.get("description"),category:f.get("category"),amountCents:price,currency:f.get("currency")})});closeDialogs();e.currentTarget.reset();toast("Listing published.");loadListings();}
-  catch(err){$("#listingError").textContent=err.message;}
-});
-$$(".filter").forEach(b=>b.addEventListener("click",()=>{$$(".filter").forEach(x=>x.classList.remove("active"));b.classList.add("active");currentCategory=b.dataset.category;loadListings();}));
-async function loadListings(){
- const container=$("#listings");container.innerHTML='<div class="empty-state">Loading opportunities…</div>';
- try{
-  const data=await api("/api/listings"+(currentCategory!=="all"?"?category="+encodeURIComponent(currentCategory):""));
-  if(!data.listings.length){container.innerHTML='<div class="empty-state">No listings yet. Be the first to publish a useful service, digital product, or task.</div>';return;}
-  container.innerHTML=data.listings.map(l=>`<article class="listing"><div class="listing-top"><span class="tag">${escapeHtml(l.category.replace("_"," "))}</span><span class="seller">by ${escapeHtml(l.seller_name)}</span></div><h3>${escapeHtml(l.title)}</h3><p>${escapeHtml(l.description)}</p><div class="listing-foot"><span class="price">${money(l.amount_cents,l.currency)}</span><button class="btn btn-primary buy" data-buy="${l.id}">View / buy ↗</button></div></article>`).join("");
-  $$("[data-buy]").forEach(b=>b.addEventListener("click",()=>buyListing(b.dataset.buy)));
- }catch(err){container.innerHTML=`<div class="empty-state">${escapeHtml(err.message)} <button class="btn btn-outline" id="retryListings">Retry</button></div>`;$("#retryListings")?.addEventListener("click",loadListings);}
-}
-async function buyListing(id){
- if(!currentUser){showAuth("register");return;}
- if(!confirm("Continue to secure checkout? Only pay for an offer you understand and expect to receive."))return;
- try{const data=await api(`/api/orders/${id}/checkout`,{method:"POST",body:"{}"});location.href=data.checkoutUrl;}
- catch(err){toast(err.message);}
-}
-async function showAccount(){
- if(!currentUser){showAuth("login");return;}
- $("#accountName").textContent=currentUser.name;$("#accountEmail").textContent=currentUser.email;$("#accountError").textContent="";
- openDialog("#accountDialog");
- try{
-  const data=await api("/api/wallet");
-  $("#balances").innerHTML=data.balances.length?data.balances.map(b=>`<div class="balance"><span>Recorded balance</span><strong style="float:right">${money(b.balance_cents,b.currency)}</strong></div>`).join(""):'<div class="balance">No recorded earnings yet. Complete a real sale to create a balance.</div>';
-  $("#payouts").innerHTML=data.payouts.length?data.payouts.map(p=>`<div class="payout-row">${money(p.amount_cents,p.currency)} · ${escapeHtml(p.status)} · ${new Date(p.created_at).toLocaleDateString()}</div>`).join(""):"No payout requests yet.";
- }catch(err){$("#accountError").textContent=err.message;}
-}
-$("#payoutForm").addEventListener("submit",async e=>{
- e.preventDefault();$("#accountError").textContent="";const f=new FormData(e.currentTarget);
- try{await api("/api/payouts",{method:"POST",body:JSON.stringify({amountCents:Math.round(Number(f.get("amount"))*100),currency:f.get("currency")})});toast("Payout request submitted for review.");showAccount();}
- catch(err){$("#accountError").textContent=err.message;}
-});
-$("#logoutBtn").addEventListener("click",async()=>{try{await api("/api/auth/logout",{method:"POST",body:"{}"});currentUser=null;closeDialogs();renderUser();toast("Signed out.");}catch(e){toast(e.message);}});
-function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-(async()=>{
- $("#year").textContent=new Date().getFullYear();
- try{const d=await api("/api/auth/me");currentUser=d.user;renderUser();}catch{}
- const params=new URLSearchParams(location.search);
- if(params.get("payment")==="success")toast("Payment return received. Your balance updates after verified Stripe webhook confirmation.");
- if(params.get("payment")==="cancelled")toast("Checkout cancelled. No payment was completed.");
- if(params.has("payment"))history.replaceState({}, "", "/");
- loadListings();
+(() => {
+  "use strict";
+  const STORE_KEY = "monevia_standalone_demo_v1";
+  const $ = (selector) => document.querySelector(selector);
+  const state = loadState();
+  let modalMode = "profile";
+  let toastTimer;
+
+  function loadState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
+      return {
+        profile: saved.profile || null,
+        activity: Array.isArray(saved.activity) ? saved.activity : [],
+        cart: Array.isArray(saved.cart) ? saved.cart : []
+      };
+    } catch {
+      return { profile: null, activity: [], cart: [] };
+    }
+  }
+  function saveState() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+    catch { showToast("This browser could not save demo data."); }
+    render();
+  }
+  function money(value) {
+    return Number(value || 0).toLocaleString("en-NG", { maximumFractionDigits: 0 });
+  }
+  function balance() {
+    return state.activity.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+  }
+  function showToast(message) {
+    const toast = $("#toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
+  }
+  function openModal(mode = "profile") {
+    modalMode = mode;
+    $("#demoForm").reset();
+    $("#modalTitle").textContent = mode === "withdraw" ? "Try a demo withdrawal" : "Create your demo profile";
+    $("#modalEyebrow").textContent = mode === "withdraw" ? "WALLET PREVIEW" : "WELCOME TO MONEVIA";
+    $("#modalDescription").textContent = mode === "withdraw"
+      ? "This is a preview only. No request will be sent and no money can be withdrawn."
+      : "Create a local preview profile. Do not use a real password; this is not a secure online account.";
+    $("#demoName").labels[0].textContent = mode === "withdraw" ? "Requested amount (₦)" : "Display name";
+    $("#demoName").placeholder = mode === "withdraw" ? "e.g. 1000" : "e.g. Knox";
+    $("#demoName").type = mode === "withdraw" ? "number" : "text";
+    $("#demoName").min = mode === "withdraw" ? "1" : "";
+    $("#demoName").max = mode === "withdraw" ? String(Math.max(1, balance())) : "";
+    $("#demoName").required = true;
+    $("#demoEmail").hidden = mode === "withdraw";
+    $("#demoEmail").required = false;
+    $("#modalSubmit").textContent = mode === "withdraw" ? "Preview request ↗" : (state.profile ? "Update demo profile ↗" : "Create demo profile ↗");
+    $("#modalBackdrop").hidden = false;
+    $("#demoName").focus();
+  }
+  function closeModal() { $("#modalBackdrop").hidden = true; }
+  function render() {
+    const currentBalance = balance();
+    $("#heroBalance").textContent = money(currentBalance);
+    $("#walletBalance").textContent = money(currentBalance);
+    $("#profileSummary").innerHTML = state.profile
+      ? `<strong>${escapeHtml(state.profile.name)}</strong><br>${escapeHtml(state.profile.email || "No email added")}<br><small>Local demo profile · This device only</small>`
+      : "No demo profile created yet.";
+    $("#accountAction").textContent = state.profile ? "Edit demo profile" : "Create demo profile";
+    const list = $("#activityList");
+    if (!state.activity.length) {
+      list.innerHTML = '<div class="empty-state">Your demo activity will appear here.</div>';
+    } else {
+      list.innerHTML = state.activity.slice().reverse().slice(0, 8).map(item => `
+        <div class="activity-row"><div>${escapeHtml(item.label)}<small>${escapeHtml(item.date)} · DEMO</small></div><div class="activity-amount">${item.amount >= 0 ? "+" : "−"}₦${money(Math.abs(item.amount))}</div></div>
+      `).join("");
+    }
+    const cartCount = state.cart.length;
+    document.querySelectorAll(".add-cart").forEach(button => {
+      const added = state.cart.some(item => item.name === button.dataset.product);
+      button.textContent = added ? "Added to demo cart ✓" : "Add to demo cart";
+      button.disabled = added;
+      button.style.opacity = added ? ".65" : "1";
+    });
+    $("#headerAuth").textContent = state.profile ? "My profile" : "Get started";
+  }
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[char]));
+  }
+  function addActivity(label, amount) {
+    state.activity.push({ label, amount, date: new Date().toLocaleDateString() });
+    saveState();
+  }
+
+  $("#menuToggle").addEventListener("click", () => $("#nav").classList.toggle("open"));
+  $("#nav").addEventListener("click", event => {
+    if (event.target.closest("a")) $("#nav").classList.remove("open");
+  });
+  $("#headerAuth").addEventListener("click", () => {
+    document.querySelector("#account").scrollIntoView({ behavior: "smooth" });
+    if (!state.profile) openModal("profile");
+  });
+  $("#heroStart").addEventListener("click", () => openModal("profile"));
+  $("#accountAction").addEventListener("click", () => openModal("profile"));
+  $("#modalClose").addEventListener("click", closeModal);
+  $("#modalBackdrop").addEventListener("click", event => { if (event.target === $("#modalBackdrop")) closeModal(); });
+  document.addEventListener("keydown", event => { if (event.key === "Escape") closeModal(); });
+
+  $("#demoForm").addEventListener("submit", event => {
+    event.preventDefault();
+    const value = $("#demoName").value.trim();
+    if (!value) return;
+    if (modalMode === "withdraw") {
+      const amount = Number(value);
+      if (!Number.isFinite(amount) || amount <= 0 || amount > balance()) {
+        showToast("Enter an amount within the demo balance.");
+        return;
+      }
+      closeModal();
+      showToast("Demo only: no withdrawal was submitted.");
+      return;
+    }
+    state.profile = { name: value.slice(0, 50), email: $("#demoEmail").value.trim().slice(0, 100) };
+    saveState();
+    closeModal();
+    showToast("Demo profile saved on this device.");
+  });
+
+  document.querySelectorAll(".task-action").forEach(button => {
+    button.addEventListener("click", () => showToast(`${button.dataset.task}: sample task preview only.`));
+  });
+  document.querySelectorAll(".add-cart").forEach(button => {
+    button.addEventListener("click", () => {
+      if (state.cart.some(item => item.name === button.dataset.product)) return;
+      state.cart.push({ name: button.dataset.product, price: Number(button.dataset.price) });
+      saveState();
+      showToast("Added to your local demo cart.");
+    });
+  });
+  $("#addSample").addEventListener("click", () => {
+    addActivity("Sample activity credit", 500);
+    showToast("Added ₦500 in demo activity only.");
+  });
+  $("#withdrawBtn").addEventListener("click", () => {
+    if (balance() <= 0) { showToast("Add sample activity before previewing a withdrawal."); return; }
+    openModal("withdraw");
+  });
+  $("#clearActivity").addEventListener("click", () => {
+    if (!state.activity.length) { showToast("There is no demo activity to clear."); return; }
+    state.activity = [];
+    saveState();
+    showToast("Demo activity cleared.");
+  });
+  $("#resetAll").addEventListener("click", () => {
+    if (!confirm("Reset this browser's MONEVIA demo profile, activity, and cart?")) return;
+    state.profile = null;
+    state.activity = [];
+    state.cart = [];
+    saveState();
+    showToast("Demo reset complete.");
+  });
+
+  render();
 })();
